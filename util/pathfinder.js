@@ -1,0 +1,89 @@
+/*
+	Pathfinder looks for 'appName' as a query param in the request.
+	This will become the unique identifier of the requesting application, 
+	used to locate and store pre-existing or new screenshots.
+	If 'appName' isn't passed in, the IP address of the requesting app will be used instead.
+
+	The path is './screenshots/' plus hashes of <App Identifier> + <Url to Screenshot> 
+	The filename is <Unix Timestamp for Now> + <File Extension>
+	
+	Complete example of a stored screenshot:
+
+		./screenshots/e8a019f2555a843951b43a5af0c826c5/8ffdefbdec956b595d257f0aaeefd623/1535755118.jpg
+
+	@author Steve Pedersen (pedersen@sfsu.edu)
+*/
+
+const pathModule = require('path');
+const md5 = require('blueimp-md5');
+const fs = require('fs');
+// const downloader = requireWrapper('util/downloader');
+
+const EXPIRY_DAYS = 7;
+
+var pathfinder = (req, url) => {
+
+	let results = {};
+	let path = appRoot + '/screenshots/';
+	let reqUrl = url;
+	let reqIp = req.ip;
+	let appIdentifier = req.query.appname || req.query.appName || reqIp;
+	let type = req.query.type || 'jpeg';
+	let extension = (type.toLowerCase() === 'png') ? '.png' : '.jpg';
+	let now = new Date();
+	let nowUnix = Math.round(+now/1000);
+	let newFilename = nowUnix + extension;
+	let filename = '';
+	let fileExists = false;
+
+	path = path + md5(appIdentifier) + '/' + md5(reqUrl);
+
+	if (fs.existsSync(path)) {
+		filename = fs.readdirSync(path);
+		if (filename === undefined || filename.length == 0) {
+			filename = newFilename;
+		} else {
+			filename = filename[0];
+			if (fileExpired(path, filename)) {
+				fs.unlinkSync(path + filename);
+				filename = newFilename;
+			} else {
+				fileExists = true;
+			}
+		}		
+	} else {
+		filename = newFilename;
+	}
+
+	let dir = path;
+	path = path + '/' + filename;
+	createScreenshotDir(dir);
+
+	results.path = path;
+	results.fileExists = fileExists;
+
+	return results;
+}
+
+function fileExpired (path, filename) {
+	let created = new Date(filename.substring(0, filename.indexOf('.'))*1000);
+	let expiry = new Date();
+	created.setDate(created.getDate() + EXPIRY_DAYS);
+
+	return created.getTime() < expiry.getTime();
+}
+
+function createScreenshotDir(dir) {
+	let separated = dir.split(pathModule.sep);
+	let working = '';
+	if (separated !== undefined || separated.length != 0) {
+		separated.forEach(function(element) {
+			working += element + '/';
+			if (!fs.existsSync(working)) {
+				fs.mkdirSync(working);
+			}
+		});			
+	}
+}
+
+module.exports = pathfinder;
