@@ -1,30 +1,33 @@
 const express = require('express');
 const router = express.Router();
-// const cookieParser = require('cookie-parser');
-const screenshotMiddleware = requireWrapper('util/screenshots');
-const redirectMiddleware = requireWrapper('util/redirect');
-const downloader = requireWrapper('util/downloader');
-const downloaderMiddleware = requireWrapper('util/downloaderMiddleware');
+const screenshotRenderer = requireWrapper('core/screenshots');
+const createDownloader = requireWrapper('core/downloader');
+
+// Create screenshot downloader.
+let downloader = createDownloader()
+	.then(createdDownloader => {
+		downloader = createdDownloader;
+		console.info('Initialized screenshot downloader.');
+	})
+	.catch(e => {
+		console.error('Fail to initialze screenshot downloader.', e);
+	});
 
 
-// router.use(cookieParser());
+router.get('/screenshots', screenshotRenderer, (req, res, next) => {
+	
+	if (!req.image && !req.fileExists) {
+		res.status(404).send('Sorry, we cannot find that!');
+	}
 
-// router.use(function(req, res, next) {
-// 	console.log(
-// 		'REQUEST HOST: %s\nMETHOD: %s\nURL: %s\nENDPOINT: %s\nPARAMS: %o', 
-// 		req.hostname, req.method, req.url, req.path, req.query
-// 	);
-// 	console.log('COOKIES: ', req.cookies);
-// 	console.log('SIGNED COOKIES: ', req.signedCookies);
-// 	next();
-// });
-
-router.get('/screenshots', screenshotMiddleware, redirectMiddleware, function(req, res, next) {
-	console.log('here in router...............');
-	return res.end();
+	downloader.redirect(req, res, next);
+	next();
 });
 
-router.get('/screenshots/download', downloaderMiddleware);
+
+router.get('/screenshots/download', async (req, res, next) => { 
+	downloader.download(req, res, next);
+});
 
 
 router.use(function(req, res, next) {

@@ -12,21 +12,40 @@ class Renderer {
 	}
 
 // 'networkidle2' - consider navigation to be finished when there are no more than 2 network connections for at least 500 ms
-	async createPage(url, options = {}, extraHeaders = {}) {
+	async createPage(url, options = {}, extraHeaders = {}, expressResponse) {
 		const { timeout, waitUntil } = options;
 		const page = await this.browser.newPage();
+		
+		let failedResponse = false;
+		// page.on('response', res => {
+		// 	if (!res.ok()) {
+		// 		try {
+		// 			expressResponse.status(404).send('Error trying to visit the provided URL.');
+		// 		} finally {
+		// 			console.log('responding with error!!');
+		// 		}
+		// 		failedResponse = true;
+		// 	}
+		// 	console.log('RESPONSE CODE:  ', res.status());
+		// });
 
 		page.setExtraHTTPHeaders(extraHeaders);
 
-		const response = await page.goto(url, {							// This line takes a couple seconds to complete...
+		const response = await page.goto(url, {					// This line takes a couple seconds to complete...
 			timeout: Number(timeout) || 30 * 1000,
 			waitUntil: waitUntil || 'networkidle2',
 		});
 
-		console.log('REQUEST HEADERS:    ', response.request().headers());
+		if (!response.ok()) {
+			try {
+				expressResponse.status(404).send('Error trying to visit the provided URL.');
+				return null;
+			} finally {
+				// console.log('responding with error!!');
+			}
+		}
 
-		console.log('Renderer: line 20. Puppeteer has connected to the requested URL.');
-		return page;
+		return !failedResponse ? page : null;
 	}
 
 	async render(url, options = {}) {
@@ -65,13 +84,12 @@ class Renderer {
 		}
 	}
 
-	async screenshot(url, options = {}) {
-		console.log('in async screenshot from Renderer');
+	async screenshot(url, options = {}, res) {
 		let page = null;
 		try {
 			var { timeout, waitUntil, ...extraOptions } = options;
 
-			page = await this.createPage(url, { timeout, waitUntil });
+			page = await this.createPage(url, { timeout, waitUntil }, {}, res);
 			page.setViewport({
 				width: Number(extraOptions.width || 800),
 				height: Number(extraOptions.height || 600),
@@ -79,8 +97,9 @@ class Renderer {
 
 			var { fullpage, omitbackground, type, quality, clip } = extraOptions;
 			if (clip) {
-				extraOptions.clip = this.parseKeyVal(clip);
+				clip = this.parseKeyVal(clip);
 			}
+
 			if (!quality) {
 				if (type === undefined) { 
 					quality = 100; 
@@ -92,22 +111,23 @@ class Renderer {
 			var path = extraOptions.path;
 			delete extraOptions.path;
 			
-			console.log('Renderer: line 75. Path is:  ' + path);
-			
 			const buffer = await page.screenshot({
 				// ...extraOptions,
+				clip: clip || '',
 				path: path,
 				type: type || 'jpeg',
 				quality: Number(quality),
 				fullPage: (fullpage === 'true'),
 				omitBackground: (omitbackground === 'true'),
 			});
-			console.log('Renderer: line 86');
+
 			return buffer;
+
 		} finally {
 			if (page) {
 				await page.close();
-				console.log('Renderer: line 88');
+			} else {
+				return null;
 			}
 		}
 	}
@@ -131,7 +151,7 @@ class Renderer {
 // https://github.com/GoogleChrome/puppeteer/blob/v1.7.0/docs/api.md#puppeteerlaunchoptions
 async function create() {
 	const options = {
-		ignoreHTTPSErrors: false,
+		ignoreHTTPSErrors: true,
 		defaultViewport: {
 			width: 800,
 			height: 600,

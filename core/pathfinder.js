@@ -17,7 +17,7 @@
 const pathModule = require('path');
 const md5 = require('blueimp-md5');
 const fs = require('fs');
-// const downloader = requireWrapper('util/downloader');
+
 
 const EXPIRY_DAYS = 7;
 
@@ -27,6 +27,7 @@ var pathfinder = (req, url) => {
 	let path = appRoot + '/screenshots/';
 	let reqUrl = url;
 	let reqIp = req.ip;
+	let getNew = (req.query.version === 'new') || false;
 	let appIdentifier = req.query.appname || req.query.appName || reqIp;
 	let type = req.query.type || 'jpeg';
 	let extension = (type.toLowerCase() === 'png') ? '.png' : '.jpg';
@@ -44,8 +45,8 @@ var pathfinder = (req, url) => {
 			filename = newFilename;
 		} else {
 			filename = filename[0];
-			if (fileExpired(path, filename)) {
-				fs.unlinkSync(path + filename);
+			if (fileExpired(path, filename) || getNew) {
+				fs.unlinkSync(path + '/' + filename);
 				filename = newFilename;
 			} else {
 				fileExists = true;
