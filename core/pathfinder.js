@@ -17,7 +17,7 @@
 const pathModule = require('path');
 const md5 = require('blueimp-md5');
 const fs = require('fs');
-
+const logger = requireWrapper('config/winston');
 
 const EXPIRY_DAYS = 7;
 
@@ -25,19 +25,15 @@ var pathfinder = (req, url) => {
 
 	let results = {};
 	let path = appRoot + '/screenshots/';
-	let reqUrl = url;
-	let reqIp = req.ip;
 	let getNew = (req.query.version === 'new') || false;
-	let appIdentifier = req.query.appname || req.query.appName || reqIp;
+	let appIdentifier = req.query.appname || req.query.appName || req.ip;
 	let type = req.query.type || 'jpeg';
 	let extension = (type.toLowerCase() === 'png') ? '.png' : '.jpg';
-	let now = new Date();
-	let nowUnix = Math.round(+now/1000);
-	let newFilename = nowUnix + extension;
+	let newFilename = Math.round((+(new Date())) / 1000) + extension; 
 	let filename = '';
 	let fileExists = false;
 
-	path = path + md5(appIdentifier) + '/' + md5(reqUrl);
+	path = path + md5(appIdentifier) + '/' + md5(url);
 
 	if (fs.existsSync(path)) {
 		filename = fs.readdirSync(path);
@@ -46,6 +42,9 @@ var pathfinder = (req, url) => {
 		} else {
 			filename = filename[0];
 			if (fileExpired(path, filename) || getNew) {
+				logger.log('debug', 'Screenshot file exists, but has expired. Deleting old file', {
+					url: path + '/' + filename
+				});
 				fs.unlinkSync(path + '/' + filename);
 				filename = newFilename;
 			} else {
@@ -77,13 +76,20 @@ function fileExpired (path, filename) {
 function createScreenshotDir(dir) {
 	let separated = dir.split(pathModule.sep);
 	let working = '';
+	let newlyCreated = false;
 	if (separated !== undefined || separated.length != 0) {
 		separated.forEach(function(element) {
 			working += element + '/';
 			if (!fs.existsSync(working)) {
 				fs.mkdirSync(working);
+				newlyCreated = true;
 			}
 		});			
+	}
+	if (newlyCreated) {
+		logger.log('debug', 'New Screenshot directory created.', {
+			url: working
+		});
 	}
 }
 

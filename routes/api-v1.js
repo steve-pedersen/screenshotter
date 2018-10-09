@@ -15,13 +15,13 @@ let downloader = createDownloader()
 
 
 router.get('/screenshots', screenshotRenderer, (req, res, next) => {
-	
-	if (!req.image && !req.fileExists) {
-		res.status(404).send('Sorry, we cannot find that!');
-	}
 
-	downloader.redirect(req, res, next);
-	next();
+	if (req.image || req.fileExists) {
+		downloader.redirect(req, res, next);
+		next();
+	}
+	
+	next({ status: 404, message: 'Unable to screenshot the requested URL.' });
 });
 
 

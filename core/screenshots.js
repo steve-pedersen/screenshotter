@@ -2,6 +2,7 @@ const { URL } = require('url');
 const contentDisposition = require('content-disposition');
 const createRenderer = require('./renderer');
 const pathFinder = require('./pathfinder');
+const logger = requireWrapper('config/winston');
 
 
 // Create screenshot renderer.
@@ -27,18 +28,19 @@ var screenshotsMiddleware = async (req, res, next) => {
 	if (!url.includes('://')) {
 		url = `http://${url}`;
 	}
-	url = url.replace(/\/+$/, "");	// strip one or more trailing slashes
+	// strip one or more trailing slashes
+	url = url.replace(/\/+$/, "");
 
 	const pathInfo = pathFinder(req, url);
 	req.imagePath = pathInfo.path;
 
-	// use path of existing image and don't proceed
-	// or set path for where to save the new screenshot
 	if (pathInfo.fileExists) {
+		logger.log('debug', 'Screenshot file exists. Returning cached image.');
 		req.fileExists = true;
 		next();
-		return req; // need to return from here.
+		return req;
 	} else {
+		// set path for where to save the new screenshot
 		req.fileExists = false;
 		options.path = pathInfo.path;
 	}
@@ -53,7 +55,6 @@ var screenshotsMiddleware = async (req, res, next) => {
 					next();
 				}
 		}
-
 	} catch (e) {
 		next(e);
 	}

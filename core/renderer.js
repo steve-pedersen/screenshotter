@@ -5,33 +5,25 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const pathModule = require('path');
+const logger = requireWrapper('config/winston');
+
 
 class Renderer {
+
 	constructor(browser) {
 		this.browser = browser;
 	}
 
-// 'networkidle2' - consider navigation to be finished when there are no more than 2 network connections for at least 500 ms
 	async createPage(url, options = {}, extraHeaders = {}, expressResponse) {
 		const { timeout, waitUntil } = options;
-		const page = await this.browser.newPage();
-		
+		const page = await this.browser.newPage();	
 		let failedResponse = false;
-		// page.on('response', res => {
-		// 	if (!res.ok()) {
-		// 		try {
-		// 			expressResponse.status(404).send('Error trying to visit the provided URL.');
-		// 		} finally {
-		// 			console.log('responding with error!!');
-		// 		}
-		// 		failedResponse = true;
-		// 	}
-		// 	console.log('RESPONSE CODE:  ', res.status());
-		// });
 
 		page.setExtraHTTPHeaders(extraHeaders);
 
-		const response = await page.goto(url, {					// This line takes a couple seconds to complete...
+		// 'networkidle2' - consider navigation finished when there are no more  
+		// 					than 2 network connections for at least 500 ms
+		const response = await page.goto(url, {
 			timeout: Number(timeout) || 30 * 1000,
 			waitUntil: waitUntil || 'networkidle2',
 		});
@@ -39,9 +31,8 @@ class Renderer {
 		if (!response.ok()) {
 			try {
 				expressResponse.status(404).send('Error trying to visit the provided URL.');
-				return null;
 			} finally {
-				// console.log('responding with error!!');
+				failedResponse = true;
 			}
 		}
 
@@ -107,7 +98,6 @@ class Renderer {
 				}
 				else if (type == 'png') { quality = 0; }
 			}
-
 			var path = extraOptions.path;
 			delete extraOptions.path;
 			

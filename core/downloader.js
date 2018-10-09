@@ -12,18 +12,8 @@ const fs     	= require('fs');
 const crypto 	= require('crypto');
 const path   	= require('path');
 const redis 	= require('redis');
-// const client 	= redis.createClient();
+const logger 	= requireWrapper('config/winston');
 
-
-// const redisOptions = {
-// 	host: process.env.REDIS_HOST || "127.0.0.1"
-// };
-// const options = {
-// 	name: 'screenshotter',
-// 	redisOptions: redisOptions,
-// 	ttlInSeconds: '360'
-// }
-// const cache = new RedisStore(options);
 
 class Downloader {
 
@@ -73,18 +63,23 @@ class Downloader {
 	async redirect(req, res, next) {
 		try {
 			this.createDownload(req.imagePath, function(err, downloadSid) {
-				// let url = req.protocol + '://' + req.hostname + ':' + process.env.PORT
-				let downloadUrl = req.protocol + '://' + req.hostname + ':3000'	
+				let downloadUrl = `${req.protocol}://${req.hostname}:${appPort}`;
 				downloadUrl = new URL(downloadUrl + '/api/v1/screenshots/download');
 				downloadUrl.search = 'sid=' + downloadSid;
-				console.log('DOWNLOAD LINK:  ', downloadUrl.href);
 				req.downloadLink = downloadUrl.href;
+
+				if (err) {
+					logger.log('error', 'Error saving file path to cache.', { extra: {
+						downloadUrl: downloadUrl.href
+					}});
+				} else {
+					logger.log('debug', 'File path saved to cache.', { extra: {
+						downloadUrl: downloadUrl.href
+					}});
+				}
 			});
 
-			// DEBUG: TRYING DIFFERENT RESPONSE HERE **********************************
 			return res.json({ imageurl: req.downloadLink });
-
-			// return res.redirect(req.downloadLink);
 
 		} catch (e) {
 			next(e);
@@ -94,7 +89,7 @@ class Downloader {
 	async download(req, res, next) {
 	  	// Get the download sid
 	  	var downloadSid = req.query.sid;
-	  	var that = this;
+	  	var downloader = this;
 
 	  	// Get the download file path
 	  	this.getDownloadFilePath(downloadSid, function(err, filePath) {
@@ -106,15 +101,24 @@ class Downloader {
 			// Read and send the file here...
 			res.download(filePath, fileName, function (err) {
 				if (err) {
-					next(err);
+					logger.log('error', 'Error downloading file - ' + downloadSid, { extra: {
+						fileLocation: filePath
+					}});
 				} else {
-					next();
+					logger.log('debug', 'Downloading file - ' + downloadSid, { extra: {
+						fileLocation: filePath
+					}});
 				}
+				next(err);
 			});
 
 			// Finally, delete the download session to invalidate the link
-			that.deleteDownload(downloadSid, function(err) {
-				if (err) console.log('Error deleting download entry');
+			downloader.deleteDownload(downloadSid, function(err) {
+				if (err) {
+					logger.log('error', 'Unable to delete session entry from cache - ' + downloadSid);
+				} else {
+					logger.log('debug', 'Download session entry deleted - ' + downloadSid);
+				}
 			});
 	  	});
 	}
@@ -122,19 +126,13 @@ class Downloader {
 }
 
 // TODO: import options somehow
-async function create() {
-	const redisOptions = {};
+async function create(options) {
+	const redisOptions = options || {
+		host: process.env.REDIS_HOST || "127.0.0.1"
+	};
 
 	return new Downloader( redisOptions );
 }
 
-// var build = create()
-// 	.then(createdDownloader => {
-// 		build = createdDownloader;
-// 		console.info('Initialized screenshot downloader.');
-// 	})
-// 	.catch(e => {
-// 		console.error('Fail to initialze screenshot downloader.', e);
-// 	});
 
 module.exports = create;
