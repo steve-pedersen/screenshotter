@@ -19,6 +19,7 @@ class Renderer {
 		const page = await this.browser.newPage();	
 		let failedResponse = false;
 
+		// Set Access-Token header if one was sent with incoming request
 		page.setExtraHTTPHeaders(extraHeaders);
 
 		// 'networkidle2' - consider navigation finished when there are no more  
@@ -78,9 +79,9 @@ class Renderer {
 	async screenshot(url, options = {}, res) {
 		let page = null;
 		try {
-			var { timeout, waitUntil, ...extraOptions } = options;
+			var { timeout, waitUntil, token, ...extraOptions } = options;
 
-			page = await this.createPage(url, { timeout, waitUntil }, {}, res);
+			page = await this.createPage(url, { timeout, waitUntil }, { 'Access-Token': token }, res);
 			page.setViewport({
 				width: Number(extraOptions.width || 800),
 				height: Number(extraOptions.height || 600),
