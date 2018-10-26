@@ -25,7 +25,7 @@ class Downloader {
 	createDownload(filePath, callback) {
 		if (!fs.existsSync(filePath)) return callback(new Error('File does not exist'));
 		// Generate the download sid (session id)
-		var downloadSid = crypto.createHash('md5').update(Math.random().toString() + filePath).digest('hex');
+		var downloadSid = crypto.createHash('md5').update((Math.random().toString() || '') + filePath).digest('hex');
 		// save file path using sid as key
 		this.client.set(downloadSid, filePath, function(err, data) {});
 		// If succeeded, return the new download sid
@@ -41,9 +41,14 @@ class Downloader {
 
 	/* Deletes a download session */
 	deleteDownload(downloadSid, callback) {
+		var error = null;
 		this.client.del(downloadSid.toString(), function(err) {
-			callback(err);
+			console.log('lol');
+			error = err;
+			return callback(err);
 		});
+		console.log('yo', error);
+		callback(error);
 	}
 
 	createDir(dir) {
@@ -93,9 +98,10 @@ class Downloader {
 
 	  	// Get the download file path
 	  	this.getDownloadFilePath(downloadSid, function(err, filePath) {
-			if (err) return res.json({ error: err.toString() });
+			if (err) return res.json({ error: (err.toString() || '') });
+			if (!filePath) return res.json({ error: 'Filepath does not exist for the requested image.' });
 
-			filePath = filePath.toString();
+			filePath = filePath ? filePath.toString() : '';
 			let fileName = path.basename(filePath);
 
 			// Read and send the file here...

@@ -1,7 +1,7 @@
 {
   "name": "screenshotter",
   "version": "0.0.0",
-  "description": "Service that takes a URL for a webpage, creates a screenshot and returns URL for the newly created screenshot image.",
+  "description": "Service that takes a URL for a webpage, creates a screenshot and returns a 1-time download URL for the newly created screenshot image.",
   "author": "Steve Pedersen (pedersen@sfsu.edu)",
   "private": true,
   "scripts": {
