@@ -7,7 +7,8 @@
 	@author Steve Pedersen (pedersen@sfsu.edu)
 */
 
-const url 		= require('url');
+// const url 		= require('url');
+const { URL } = require('url'); 
 const fs     	= require('fs');
 const crypto 	= require('crypto');
 const path   	= require('path');
@@ -41,14 +42,9 @@ class Downloader {
 
 	/* Deletes a download session */
 	deleteDownload(downloadSid, callback) {
-		var error = null;
 		this.client.del(downloadSid.toString(), function(err) {
-			console.log('lol');
-			error = err;
 			return callback(err);
 		});
-		console.log('yo', error);
-		callback(error);
 	}
 
 	createDir(dir) {

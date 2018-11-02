@@ -77,6 +77,7 @@ function createScreenshotDir(dir) {
 	let separated = dir.split(pathModule.sep);
 	let working = '';
 	let newlyCreated = false;
+	let options = { recursive: true, mode: 0777 }
 	if (separated !== undefined || separated.length != 0) {
 		separated.forEach(function(element) {
 			working += element + '/';

@@ -81,7 +81,9 @@ class Renderer {
 		try {
 			var { timeout, waitUntil, token, ...extraOptions } = options;
 
-			page = await this.createPage(url, { timeout, waitUntil }, { 'Access-Token': token }, res);
+			var extraHeaders = (token ? { 'Access-Token': token } : {});
+
+			page = await this.createPage(url, { timeout, waitUntil }, extraHeaders, res);
 			page.setViewport({
 				width: Number(extraOptions.width || 800),
 				height: Number(extraOptions.height || 600),
@@ -142,7 +144,7 @@ class Renderer {
 // https://github.com/GoogleChrome/puppeteer/blob/v1.7.0/docs/api.md#puppeteerlaunchoptions
 async function create() {
 	const options = {
-		ignoreHTTPSErrors: true,
+		ignoreHTTPSErrors: false,
 		defaultViewport: {
 			width: 800,
 			height: 600,

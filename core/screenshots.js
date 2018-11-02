@@ -30,7 +30,7 @@ var screenshotsMiddleware = async (req, res, next) => {
 	}
 	// strip one or more trailing slashes
 	url = url.replace(/\/+$/, "");
-
+	
 	// access token
 	options.token = req.header('Access-Token');
 
