@@ -3,6 +3,7 @@ const router = express.Router();
 const screenshotRenderer = requireWrapper('core/screenshots');
 const createDownloader = requireWrapper('core/downloader');
 
+
 // Create screenshot downloader.
 let downloader = createDownloader()
 	.then(createdDownloader => {

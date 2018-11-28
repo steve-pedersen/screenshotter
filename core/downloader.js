@@ -35,6 +35,7 @@ class Downloader {
 
 	/* Gets the download file path related to a download sid */
 	getDownloadFilePath(downloadSid, callback) {
+		downloadSid = downloadSid ? downloadSid : '';
 		this.client.get(downloadSid, function (err, data) {
 			return callback(err, data);
 		});
@@ -42,6 +43,7 @@ class Downloader {
 
 	/* Deletes a download session */
 	deleteDownload(downloadSid, callback) {
+		downloadSid = downloadSid ? downloadSid : '';
 		this.client.del(downloadSid.toString(), function(err) {
 			return callback(err);
 		});

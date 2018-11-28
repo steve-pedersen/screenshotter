@@ -18,8 +18,8 @@ const myFormat = printf(info => {
 
 var options = {
 	file: {
-		level: process.env.LOG_LEVEL || 'info',
-		filename: `${appRoot}/logs/app.log`,
+		level: process.env.LOG_LEVEL || 'debug',
+		filename: `${appRoot}/app.log`,
 		handleExceptions: true,
 		json: true,
 		maxsize: 5242880, // 5MB

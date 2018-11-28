@@ -1,15 +1,15 @@
-const { URL } = require('url');
-const contentDisposition = require('content-disposition');
 const createRenderer = require('./renderer');
-const pathFinder = require('./pathfinder');
+const pathtools = require('./pathtools')();
 const logger = requireWrapper('config/winston');
 
-
-// Create screenshot renderer.
+// Create screenshot renderer and start cron.
 let renderer = createRenderer()
 	.then(createdRenderer => {
 		renderer = createdRenderer;
 		console.info('Initialized screenshot renderer.');
+	})
+	.then(() => {
+		pathtools.runCron();
 	})
 	.catch(e => {
 		console.error('Fail to initialze screenshot renderer.', e);
@@ -34,7 +34,7 @@ var screenshotsMiddleware = async (req, res, next) => {
 	// access token
 	options.token = req.header('Access-Token');
 
-	const pathInfo = pathFinder(req, url);
+	const pathInfo = pathtools.pathFinder(req, url);
 	req.imagePath = pathInfo.path;
 
 	if (pathInfo.fileExists) {

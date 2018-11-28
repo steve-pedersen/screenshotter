@@ -9,10 +9,10 @@ var morgan 			= require('morgan');
 var apiV1Router 	= require('./routes/api-v1');
 var logger 			= requireWrapper('config/winston');
 
-
+console.log('App listening on port ' + appPort);
 var app = express();
 app.set('view engine', 'pug');
-// app.use(morgan('combined', { stream: winston.stream }));
+app.use(morgan('combined', { stream: winston.stream }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());

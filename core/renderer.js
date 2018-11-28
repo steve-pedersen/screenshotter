@@ -4,7 +4,6 @@
 
 const puppeteer = require('puppeteer');
 const fs = require('fs');
-const pathModule = require('path');
 const logger = requireWrapper('config/winston');
 
 
@@ -30,6 +29,9 @@ class Renderer {
 		});
 
 		if (!response.ok()) {
+			logger.log('debug', 'Bad response while attempting to visit screenshot url.', { extra: {
+				accessToken: (extraHeaders['Access-Token'] || '')
+			}});
 			try {
 				expressResponse.status(404).send('Error trying to visit the provided URL.');
 			} finally {
@@ -80,7 +82,6 @@ class Renderer {
 		let page = null;
 		try {
 			var { timeout, waitUntil, token, ...extraOptions } = options;
-
 			var extraHeaders = (token ? { 'Access-Token': token } : {});
 
 			page = await this.createPage(url, { timeout, waitUntil }, extraHeaders, res);
@@ -144,7 +145,7 @@ class Renderer {
 // https://github.com/GoogleChrome/puppeteer/blob/v1.7.0/docs/api.md#puppeteerlaunchoptions
 async function create() {
 	const options = {
-		ignoreHTTPSErrors: false,
+		ignoreHTTPSErrors: true,
 		defaultViewport: {
 			width: 800,
 			height: 600,
