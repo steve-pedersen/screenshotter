@@ -18,19 +18,22 @@ class Renderer {
 		const page = await this.browser.newPage();	
 		let failedResponse = false;
 
-		// Set Access-Token header if one was sent with incoming request
+		// best debug statement right here:
+		page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+
+		// Set X-Custom-Header header if one was sent with incoming request
 		page.setExtraHTTPHeaders(extraHeaders);
 
 		// 'networkidle2' - consider navigation finished when there are no more  
 		// 					than 2 network connections for at least 500 ms
 		const response = await page.goto(url, {
-			timeout: Number(timeout) || 30 * 1000,
+			timeout: Number(timeout) || 3 * 1000,
 			waitUntil: waitUntil || 'networkidle2',
 		});
 
-		if (!response.ok()) {
+		if (!response.ok()) {	
 			logger.log('debug', 'Bad response while attempting to visit screenshot url.', { extra: {
-				accessToken: (extraHeaders['Access-Token'] || '')
+				accessToken: (extraHeaders['X-Custom-Header'] || '')
 			}});
 			try {
 				expressResponse.status(404).send('Error trying to visit the provided URL.');
@@ -82,7 +85,7 @@ class Renderer {
 		let page = null;
 		try {
 			var { timeout, waitUntil, token, ...extraOptions } = options;
-			var extraHeaders = (token ? { 'Access-Token': token } : {});
+			var extraHeaders = (token ? { 'X-Custom-Header': token  } : {});
 
 			page = await this.createPage(url, { timeout, waitUntil }, extraHeaders, res);
 			page.setViewport({
