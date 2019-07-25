@@ -66,6 +66,7 @@ class Downloader {
 	async redirect(req, res, next) {
 		try {
 			this.createDownload(req.imagePath, function(err, downloadSid) {
+				let downloadUrl = `https://${req.hostname}`;
 				if (process.env.SSL_PROXY) {
 					let downloadUrl = `https://${req.hostname}`;
 				} else {
