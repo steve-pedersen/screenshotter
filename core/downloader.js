@@ -66,7 +66,11 @@ class Downloader {
 	async redirect(req, res, next) {
 		try {
 			this.createDownload(req.imagePath, function(err, downloadSid) {
-				let downloadUrl = `${req.protocol}://${req.hostname}:${appPort}`;
+				if (process.env.SSL_PROXY) {
+					let downloadUrl = `https://${req.hostname}`;
+				} else {
+					let downloadUrl = `${req.protocol}://${req.hostname}:${appPort}`;
+				}
 				downloadUrl = new URL(downloadUrl + '/api/v1/screenshots/download');
 				downloadUrl.search = 'sid=' + downloadSid;
 				req.downloadLink = downloadUrl.href;
