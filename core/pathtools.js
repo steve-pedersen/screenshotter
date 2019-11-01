@@ -21,7 +21,7 @@ const logger = requireWrapper('config/winston');
 const cronSchedules = requireWrapper('config/cron');
 const CronJob = require('cron').CronJob;
 
-const EXPIRY_DAYS = 7;
+const EXPIRY_DAYS = 30;
 
 class PathTools {
 

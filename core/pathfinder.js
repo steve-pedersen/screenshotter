@@ -19,7 +19,7 @@ const md5 = require('blueimp-md5');
 const fs = require('fs');
 const logger = requireWrapper('config/winston');
 
-const EXPIRY_DAYS = 1;
+const EXPIRY_DAYS = 30;
 
 var pathfinder = (req, url) => {
 
