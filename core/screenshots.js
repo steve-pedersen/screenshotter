@@ -32,7 +32,7 @@ var screenshotsMiddleware = async (req, res, next) => {
 	url = url.replace(/\/+$/, "");
 	
 	// access token
-	options.token = req.header('Access-Token');
+	options.token = req.header('X-Custom-Header');
 
 	const pathInfo = pathtools.pathFinder(req, url);
 	req.imagePath = pathInfo.path;
