@@ -21,7 +21,7 @@ const logger = requireWrapper('config/winston');
 const cronSchedules = requireWrapper('config/cron');
 const CronJob = require('cron').CronJob;
 
-const EXPIRY_DAYS = 3;
+const EXPIRY_DAYS = 365;
 
 class PathTools {
 
@@ -148,11 +148,11 @@ class PathTools {
 		});
 	}
 
-	runCron() {
-		logger.log('debug', '[Cron Running]');
-		const job = new CronJob(cronSchedules.cleanupScreenshots, this.cleanupScreenshotDirs);
-		job.start();
-	}
+	// runCron() {
+	// 	logger.log('debug', '[Cron Running]');
+	// 	const job = new CronJob(cronSchedules.cleanupScreenshots, this.cleanupScreenshotDirs);
+	// 	job.start();
+	// }
 
 }
 
