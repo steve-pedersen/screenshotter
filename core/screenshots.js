@@ -59,6 +59,9 @@ var screenshotsMiddleware = async (req, res, next) => {
 				}
 		}
 	} catch (e) {
+		logger.log('error', 'screenshots.js - Error when attempting screenshot.', { extra: {
+			error: (e || '')
+		}});		
 		next(e);
 	}
 }

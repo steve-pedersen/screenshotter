@@ -22,7 +22,7 @@ router.get('/screenshots', screenshotRenderer, (req, res, next) => {
 		next();
 	}
 	
-	next({ status: 404, message: 'Unable to screenshot the requested URL.' });
+	next({ status: 500, message: 'An error occurred when attempting to screenshot.' });
 });
 
 

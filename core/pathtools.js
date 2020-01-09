@@ -148,11 +148,11 @@ class PathTools {
 		});
 	}
 
-	// runCron() {
-	// 	logger.log('debug', '[Cron Running]');
-	// 	const job = new CronJob(cronSchedules.cleanupScreenshots, this.cleanupScreenshotDirs);
-	// 	job.start();
-	// }
+	runCron() {
+		// logger.log('debug', '[Cron Running]');
+		// const job = new CronJob(cronSchedules.cleanupScreenshots, this.cleanupScreenshotDirs);
+		// job.start();
+	}
 
 }
 

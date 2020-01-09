@@ -32,7 +32,7 @@ class Renderer {
 		});
 
 		if (!response.ok()) {	
-			logger.log('debug', 'Bad response while attempting to visit screenshot url.', { extra: {
+			logger.log('error', 'Bad response while attempting to visit screenshot url.', { extra: {
 				accessToken: (extraHeaders['X-Custom-Header'] || '')
 			}});
 			try {
@@ -40,6 +40,10 @@ class Renderer {
 			} finally {
 				failedResponse = true;
 			}
+		} else {
+			logger.log('debug', 'Ok response when screenshotting url: ' + url, { extra: {
+				accessToken: (extraHeaders['X-Custom-Header'] || '')
+			}});
 		}
 
 		return !failedResponse ? page : null;
